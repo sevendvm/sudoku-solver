@@ -34,29 +34,52 @@ class Field:
 		#  [2,0,4,0,7,0,6,0,8],
 		#  [3,0,0,0,0,0,0,0,2],
 		#  [0,8,0,2,0,4,0,5,0]]
-		self.field = \
-		 [[0, 8, 0, 0, 0, 0, 0, 2, 0],
-		  [0, 0, 0, 4, 7, 5, 0, 0, 0],
-		  [3, 0, 0, 0, 0, 0, 0, 0, 4],
-		  [0, 0, 8, 0, 4, 0, 2, 0, 0],
-		  [0, 1, 0, 5, 0, 9, 0, 4, 0],
-		  [0, 0, 2, 0, 1, 0, 6, 0, 0],
-		  [9, 0, 0, 0, 0, 0, 0, 0, 3],
-		  [0, 0, 0, 3, 6, 4, 0, 0, 0],
-		  [0, 4, 0, 0, 0, 0, 0, 1, 0]]
 		
+		# TODO: unsolved
+		# self.field = \
+		#  [[0, 8, 0, 0, 0, 0, 0, 2, 0],
+		#   [0, 0, 0, 4, 7, 5, 0, 0, 0],
+		#   [3, 0, 0, 0, 0, 0, 0, 0, 4],
+		#   [0, 0, 8, 0, 4, 0, 2, 0, 0],
+		#   [0, 1, 0, 5, 0, 9, 0, 4, 0],
+		#   [0, 0, 2, 0, 1, 0, 6, 0, 0],
+		#   [9, 0, 0, 0, 0, 0, 0, 0, 3],
+		#   [0, 0, 0, 3, 6, 4, 0, 0, 0],
+		#   [0, 4, 0, 0, 0, 0, 0, 1, 0]]
+		
+		self.field = \
+		 [[1, 8, 0, 0, 0, 0, 0, 4, 2],
+		  [4, 0, 6, 0, 0, 0, 5, 0, 1],
+		  [0, 3, 5, 0, 0, 0, 9, 6, 0],
+		  [0, 0, 0, 1, 4, 9, 0, 0, 0],
+		  [0, 0, 0, 7, 0, 3, 0, 0, 0],
+		  [0, 0, 0, 5, 2, 6, 0, 0, 0],
+		  [0, 7, 2, 0, 0, 0, 8, 5, 0],
+		  [5, 0, 8, 0, 0, 0, 1, 0, 3],
+		  [6, 1, 0, 0, 0, 0, 0, 7, 4]]
+		
+		self.update_empty_cells()
+		self.update_all_possible_numbers()
+		# for i in range(0, 9):
+		# 	for j in range(0, 9):
+		# 		if self.field[i][j] > 0:
+		# 			self.emptyCells -= 1
+
+	def update_empty_cells(self):
+		emptyCells = 0
 		for i in range(0, 9):
 			for j in range(0, 9):
-				if self.field[i][j] > 0:
-					self.emptyCells -= 1
-
+				if self.field[i][j] == 0:
+					emptyCells += 1
+		self.emptyCells = emptyCells
+	
 	def check(self):
 		correct = True
 		for row in range(0, 9):
 			numbers = []
 			for col in range(0, 9):
 				if self.field[row][col] > 0:
-					correct = correct and self.field[row][col] not in numbers
+					correct = correct and (self.field[row][col] not in numbers)
 					if not correct:
 						return False
 					numbers.append(self.field[row][col])
@@ -65,7 +88,7 @@ class Field:
 			numbers = []
 			for row in range(0, 9):
 				if self.field[row][col] > 0:
-					correct = correct and self.field[row][col] not in numbers
+					correct = correct and (self.field[row][col] not in numbers)
 					if not correct:
 						return False
 					numbers.append(self.field[row][col])
@@ -73,18 +96,28 @@ class Field:
 		for vcell in range(0, 3):
 			for hcell in range(0, 3):
 				numbers = []
-				for i in range(vcell * 3, vcell * 3 + 3):
-					for j in range(hcell * 3, vcell * 3 + 3):
+				for i in range(hcell * 3, hcell * 3 + 3):
+					for j in range(vcell * 3, vcell * 3 + 3):
 						if self.field[i][j] > 0:
-							correct = correct and self.field[i][j] not in numbers
+							correct = correct and (self.field[i][j] not in numbers)
 							if not correct:
 								return False
 							numbers.append(self.field[i][j])
 		
 		return correct
 	
+	def update_all_possible_numbers(self):
+		for row in range(0, 9):
+			for col in range(0, 9):
+				self.get_possible_numbers_at_cell(row, col)
+	
 	def get_possible_numbers_at_cell(self, row_index, col_index):
-		possible = self.possibleNumbers[row_index][col_index]  # [i for i in range(1, 10)]
+		
+		if self.field[row_index][col_index] > 0:
+			self.possibleNumbers[row_index][col_index] = []
+			return []
+		
+		possible = self.possibleNumbers[row_index][col_index].copy()  # [i for i in range(1, 10)]
 		
 		# check one column
 		for col in range(0, 9):
@@ -94,6 +127,10 @@ class Field:
 				possible.remove(num)
 				if len(possible) == 0:
 					self.possibleNumbers[row_index][col_index] = []
+					
+					if self.field[row_index][col_index] == 0:
+						print(f'WARNING. Cell [{row_index, col_index}] is empty so as possible numbers list is')
+					
 					return []
 		
 		# check one row
@@ -104,6 +141,10 @@ class Field:
 				possible.remove(num)
 				if len(possible) == 0:
 					self.possibleNumbers[row_index][col_index] = []
+					
+					if self.field[row_index][col_index] == 0:
+						print(f'WARNING. Cell [{row_index, col_index}] is empty so as possible numbers list is')
+					
 					return []
 		
 		# check a cell
@@ -117,26 +158,44 @@ class Field:
 					possible.remove(num)
 					if len(possible) == 0:
 						self.possibleNumbers[row_index][col_index] = []
+						
+						if self.field[row_index][col_index] == 0:
+							print(f'WARNING. Cell [{row_index, col_index}] is empty so as possible numbers list is')
+						
 						return []
 		
 		# print(f'Not 100% sure. Possible numbers are {possible}') if len(possible) > 1 else\
 		# 	print(f'Found single possibility: {possible[0]}')
-		self.possibleNumbers[row_index][col_index] = possible
+		self.possibleNumbers[row_index][col_index] = possible.copy()
 		return possible
+	
+	def print_all_possibilities(self, include_empty=False):
+		for i in range(0, 9):
+			for j in range(0, 9):
+				if self.field[i][j] == 0 or include_empty:
+					v = self.possibleNumbers[i][j]
+					print(f'Possible variants for [{i},{j}] are {v.__str__()}')
 	
 	def solve(self):
 		
 		def check_directly_assignable():
+			any_changes = False
 			for row in range(0, 9):
 				for col in range(0, 9):
 					if self.field[row][col] == 0:
-						possibilities = self.get_possible_numbers_at_cell(row, col)
-						if len(possibilities) == 1:
-							print(f'[{row},{col}] is set to {possibilities[0]}')
-							self.field[row][col] = possibilities[0]
+						# possibilities = self.get_possible_numbers_at_cell(row, col)
+						# if len(possibilities) == 1:
+						if len(self.possibleNumbers[row][col]) == 1:
+							# print(f'[{row},{col}] is set to {possibilities[0]}')
+							# self.field[row][col] = possibilities[0]
+							print(f'[{row},{col}] is set to {self.possibleNumbers[row][col][0]}')
+							self.field[row][col] = self.possibleNumbers[row][col][0]
+							self.possibleNumbers[row][col] = []
 							self.emptyCells -= 1
-							return True
-			return False
+							any_changes = True
+			return any_changes
+		
+		self.print_all_possibilities()
 		
 		# 0. set all cells which have a single possible number
 		print('Checking directly assignable cells:')
@@ -145,6 +204,9 @@ class Field:
 			iteration += 1
 			# print(f'=== ITERATION {iteration} COMPLETE ===')
 		print(f'Cells to go {self.emptyCells}')
+		
+		print('RETURNING')
+		return False
 		
 		if self.emptyCells == 0:
 			return self.check()
@@ -159,9 +221,12 @@ class Field:
 				return self.check()
 			else:
 				sudoku = Field()
-				sudoku.field = self.field
+				sudoku.field = self.field.copy()
 				sudoku.emptyCells = self.emptyCells
-				sudoku.possibleNumbers = self.possibleNumbers
+				sudoku.possibleNumbers = self.possibleNumbers.copy()
+				
+				
+				
 				
 				if sudoku.solve():
 					return sudoku.check()
@@ -180,8 +245,10 @@ class Field:
 					for candidate in self.possibleNumbers[row][col]:
 						print(f'Trying {candidate} at [{row},{col}]')
 						if not try_variant(row, col, candidate):
+							print('Doesn\'t fit. Continuing...')
 							continue
 						elif self.emptyCells == 0:
+							print('Solution found. Exiting recursion')
 							return self.check()
 		
 		# 3. check if it fits
@@ -190,9 +257,34 @@ class Field:
 		# 3.2.1 check whether it was the last empty cell
 		# 3.2.1.1 if it so - solution found
 		# 3.2.1.2 if not - recurse to step 1
-		
+		print('Finishing solve')
 		return False
-
+	
+	def solve_v2(self):
+		
+		self.update_all_possible_numbers()
+		
+		for row in range(0, 9):
+			for col in range(0, 9):
+				if self.field[row][col] == 0:
+					for candidate in range(9):  # self.possibleNumbers[row][col]:
+						self.field[row][col] = candidate
+						# self.possibleNumbers[row][col].remove(candidate)
+						self.emptyCells -= 1
+						
+						if self.check():
+							if self.emptyCells == 0:
+								print('Solution found')
+								print(self)
+							else:
+								self.solve_v2()
+						else:
+							self.field[row][col] = 0
+							self.emptyCells += 1
+						
+						# if consistent and emptyCells == 0 then it's a solution
+						# else try next
+						
 
 def main():
 	sudoku = Field()
@@ -201,20 +293,18 @@ def main():
 	print('Given a field...')
 	print(sudoku)
 	
-	print('Solving...')
-	sudoku.solve()
+	print(f'Cells to fill in so far: {sudoku.emptyCells}')
+	# sudoku.print_all_possibilities()
 	
-	print(sudoku)
+	print('Solving...')
+	sudoku.solve_v2()
+	
+	# print(sudoku)
 	
 	if not sudoku.check():
 		print('Inconsistent state detected')
 
-	for i in range(0, 9):
-		for j in range(0, 9):
-			if sudoku.field[i][j] == 0:
-				v = sudoku.get_possible_numbers_at_cell(i, j)
-				print(f'Possible variants for [{i},{j}] are {v.__str__()}')
-	
+
 	# print(sudoku) if sudoku.solve() else print('No solutions found.')
 	
 	# print('Possible numbers at [5,5] are:', sudoku.get_possible_numbers_at_cell(4, 4))
