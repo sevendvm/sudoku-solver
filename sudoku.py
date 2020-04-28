@@ -20,6 +20,17 @@ field = \
 # 	 [0, 0, 0, 4, 1, 9, 0, 0, 5],
 # 	 [0, 0, 0, 0, 8, 0, 0, 7, 9]]
 
+# field = \
+#  [[0, 8, 0, 0, 0, 0, 0, 2, 0],
+#   [0, 0, 0, 4, 7, 5, 0, 0, 0],
+#   [3, 0, 0, 0, 0, 0, 0, 0, 4],
+#   [0, 0, 8, 0, 4, 0, 2, 0, 0],
+#   [0, 1, 0, 5, 0, 9, 0, 4, 0],
+#   [0, 0, 2, 0, 1, 0, 6, 0, 0],
+#   [9, 0, 0, 0, 0, 0, 0, 0, 3],
+#   [0, 0, 0, 3, 6, 4, 0, 0, 0],
+#   [0, 4, 0, 0, 0, 0, 0, 1, 0]]
+
 
 def check():
 	correct = True
@@ -67,20 +78,57 @@ def get_empty_cells_count(field):
 	return emptyCells
 
 
+def get_possible_numbers(row_index, col_index):
+	possible = [i for i in range(1, 10)]
+	
+	for col in range(0, 9):
+		num = field[row_index][col]
+		if num > 0 and num in possible:
+			possible.remove(num)
+			if len(possible) == 0:
+				return []
+	
+	# check one row
+	for row in range(0, 9):
+		num = field[row][col_index]
+		if num > 0 and num in possible:
+			possible.remove(num)
+			if len(possible) == 0:
+				return []
+	
+	# check a cell
+	hcell = row_index // 3
+	vcell = col_index // 3
+	for i in range(hcell * 3, hcell * 3 + 3):
+		for j in range(vcell * 3, vcell * 3 + 3):
+			num = field[i][j]
+			if num > 0 and num in possible:
+				possible.remove(num)
+				if len(possible) == 0:
+					return []
+	
+	return possible
+
+
 emptyCells = get_empty_cells_count(field)
 
+recursionLevel = 0
 
 def solve():
 	
+	global recursionLevel
 	global field
 	global emptyCells
 	
+	recursionLevel += 1
+	
+	# print(f'Level: {recursionLevel}')
 	# print(f'{emptyCells} to go')
 	
 	for row in range(9):
 		for col in range(9):
 			if field[row][col] == 0:
-				for candidate in range(1, 10):  # possibleNumbers[row][col]:
+				for candidate in get_possible_numbers(row, col):
 					field[row][col] = candidate
 					# possibleNumbers[row][col].remove(candidate)
 					emptyCells -= 1
@@ -90,6 +138,7 @@ def solve():
 						if emptyCells == 0:
 							print('Solution found')
 							print(field)
+							recursionLevel -= 1
 							return
 						else:
 							solve()
@@ -100,8 +149,9 @@ def solve():
 				
 				field[row][col] = 0
 				emptyCells += 1
+				recursionLevel -= 1
 				return
-
+	recursionLevel -= 1
 
 # print('Exited inner loop')
 
