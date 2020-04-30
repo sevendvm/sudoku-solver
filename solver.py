@@ -7,6 +7,7 @@ class Field:
 		self.emptyCells = 9*9
 		self.field = [[0 for i in range(0, 9)] for j in range(0, 9)]
 		self.possibleNumbers = [[[k for k in range(1, 10)] for i in range(0, 9)] for j in range(0, 9)]
+		self.any_solutions_round = False
 	
 	def __str__(self):
 		res = '\n'.join((self.field[i].__str__() for i in range(0, 9)))
@@ -261,30 +262,66 @@ class Field:
 		return False
 	
 	def solve_v2(self):
+		# Optimizing
+		def check_directly_assignable():
+			any_changes = False
+			for row in range(0, 9):
+				for col in range(0, 9):
+					if self.field[row][col] == 0:
+						# possibilities = self.get_possible_numbers_at_cell(row, col)
+						# if len(possibilities) == 1:
+						if len(self.possibleNumbers[row][col]) == 1:
+							# print(f'[{row},{col}] is set to {possibilities[0]}')
+							# self.field[row][col] = possibilities[0]
+							print(f'[{row},{col}] is set to {self.possibleNumbers[row][col][0]}')
+							self.field[row][col] = self.possibleNumbers[row][col][0]
+							self.possibleNumbers[row][col] = []
+							self.emptyCells -= 1
+							any_changes = True
+			return any_changes
 		
-		self.update_all_possible_numbers()
+		# self.print_all_possibilities()
 		
-		for row in range(0, 9):
-			for col in range(0, 9):
-				if self.field[row][col] == 0:
-					for candidate in range(9):  # self.possibleNumbers[row][col]:
-						self.field[row][col] = candidate
-						# self.possibleNumbers[row][col].remove(candidate)
-						self.emptyCells -= 1
-						
-						if self.check():
-							if self.emptyCells == 0:
-								print('Solution found')
-								print(self)
+		# 0. set all cells which have a single possible number
+		print('Checking directly assignable cells:')
+		iteration = 0
+		while check_directly_assignable():
+			iteration += 1
+		# print(f'=== ITERATION {iteration} COMPLETE ===')
+		print(f'Cells to go {self.emptyCells}')
+		
+		# There is no more directly assignable cells
+		# continuing with guessing
+		def solve_internal():
+			for row in range(9):
+				for col in range(9):
+					if self.field[row][col] == 0:
+						for candidate in self.possibleNumbers[row][col]:  # self.get_possible_numbers_at_cell(row, col):
+							self.field[row][col] = candidate
+							# self.possibleNumbers[row][col].remove(candidate)
+							self.emptyCells -= 1
+							# print(f'Trying {candidate} at [{row}, {col}]')
+							
+							if self.check():
+								if self.emptyCells == 0:
+									print('Solution found')
+									print(self)
+									self.any_solutions_round = True
+									return True
+								else:
+									# self.solve_v2()
+									solve_internal()
 							else:
-								self.solve_v2()
-						else:
-							self.field[row][col] = 0
-							self.emptyCells += 1
+								# print(f'Declined {candidate} at [{row}, {col}]')
+								self.field[row][col] = 0
+								self.emptyCells += 1
 						
-						# if consistent and emptyCells == 0 then it's a solution
-						# else try next
-						
+						self.field[row][col] = 0
+						self.emptyCells += 1
+						return False
+		
+		return solve_internal()
+
 
 def main():
 	sudoku = Field()
@@ -298,16 +335,11 @@ def main():
 	
 	print('Solving...')
 	sudoku.solve_v2()
-	
-	# print(sudoku)
+	if not sudoku.any_solutions_round:
+		print('No solutions found.')
 	
 	if not sudoku.check():
 		print('Inconsistent state detected')
-
-
-	# print(sudoku) if sudoku.solve() else print('No solutions found.')
-	
-	# print('Possible numbers at [5,5] are:', sudoku.get_possible_numbers_at_cell(4, 4))
 
 
 if __name__ == '__main__':
